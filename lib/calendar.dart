@@ -20,7 +20,7 @@ class _CalendarPage extends State<CalendarPage> {
       appBar: AppBar(
         toolbarHeight: 80,
         title: Align(
-          alignment: Alignment.centerLeft, // 텍스트를 왼쪽으로 정렬
+          alignment: Alignment.centerLeft,
           child: const Text(
             "Check your meal",
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
