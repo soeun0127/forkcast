@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import 'package:solution_challenge/home.dart';
 import 'checkHealthData.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,14 +24,15 @@ class _SignUpPageState extends State<SignUpPage> {
     final String email = emailController.text.trim();
     final String password = passwordController.text.trim();
 
-    final url = Uri.parse('https://api/auth/signup');
+    final url = Uri.parse('https://forkcast.onrender.com/auth/signup');
 
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password, 'name': name}),
     );
-    if(response.statusCode == 200) {
+    if(response.statusCode == 201) {
+      print("sign up 성공");
       final data = jsonDecode(response.body);
       final token = data['token'];
       final userId = data['userId'];
@@ -85,6 +87,12 @@ class _SignUpPageState extends State<SignUpPage> {
           },
         );
       }
+      else{
+        print("token이 없음");
+      }
+    }
+    else{
+      print("sign up 실패");
     }
   }
 

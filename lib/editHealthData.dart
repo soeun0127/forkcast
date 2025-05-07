@@ -21,7 +21,7 @@ class _EditUserHealthPage extends State<EditUserHealthPage> {
   final secondColor = const Color(0xFFE8F3F1);
 
   Future<void> updateHealthInfo() async {
-    final url = Uri.parse('https://api/user/health'); // 실제 API 주소로 변경
+    final url = Uri.parse('https://forkcast.onrender.com/user/health'); // 실제 API 주소로 변경
 
     final data = {
       "diseaseId": int.tryParse(diseaseController.text) ?? 0,

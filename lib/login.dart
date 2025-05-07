@@ -17,7 +17,7 @@ class LoginPage extends StatelessWidget {
     final password = passwordController.text;
 
     final response = await http.post(
-      Uri.parse('https://api/auth/login'),
+      Uri.parse('https://forkcast.onrender.com/auth/login'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         'email' : email,

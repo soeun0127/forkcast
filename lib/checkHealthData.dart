@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:solution_challenge/get_access_token.dart';
 import 'package:solution_challenge/home.dart';
 import 'package:http/http.dart' as http;
 
@@ -27,12 +28,13 @@ class _CheckUserHealthPageState extends State<CheckUserHealthPage> {
   final genders = ['Male', 'Female', 'Other'];
 
   Future<void> submit() async {
-    final url = Uri.parse('https://api/user/health');
-
+    final url = Uri.parse('https://forkcast.onrender.com/user/health');
+    final token = await getAccessToken();
+    print(token);
     final userData = {
       "birthdate": selectedDate.toIso8601String().split("T")[0],
       "gender": gender == 0 ? "MALE" : gender == 1 ? "FEMALE" : "OTHER",
-      "diseaseId": int.tryParse(diseaseController.text) ?? 0,
+      "diseaseId": 1, //int.tryParse(diseaseController.text) ?? 0,
       "proteinLimit": int.tryParse(proteinController.text) ?? 0,
       "sugarLimit": int.tryParse(sugarController.text) ?? 0,
       "sodiumLimit": int.tryParse(sodiumController.text) ?? 0,
@@ -42,7 +44,10 @@ class _CheckUserHealthPageState extends State<CheckUserHealthPage> {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization' : 'Bearer $token',
+        },
         body: jsonEncode(userData),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
