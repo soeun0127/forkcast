@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'editHealthData.dart';
+import 'edit_health_data.dart';
 import 'calendar.dart';
 import 'profile.dart';
 import 'camera.dart';
+import 'today_meal_record.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -101,13 +102,17 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 28),
 
             /// Button List
-            _buildMenuItem(Icons.thumb_up, "Recommended Meals", () {}),
+            _buildMenuItem(Icons.thumb_up, "Recommended Meals", () {
+
+            }),
             const SizedBox(height: 12),
             _buildMenuItem(Icons.fact_check, "Weekly Meal Evaluation", () {}),
             const SizedBox(height: 12),
             _buildMenuItem(Icons.people, "User Community", () {}),
             const SizedBox(height: 12),
-            _buildMenuItem(Icons.flag, "Set Health Goals", () {}),
+            _buildMenuItem(Icons.flag, "Today's Meal Record", () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => TodayMealRecordPage()));
+            }),
             const SizedBox(height: 12),
             _buildMenuItem(
               Icons.info,

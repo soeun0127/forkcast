@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:solution_challenge/home.dart';
-import 'checkHealthData.dart';
+import 'submit_health_data.dart';
 import 'package:http/http.dart' as http;
 
 class SignUpPage extends StatefulWidget {

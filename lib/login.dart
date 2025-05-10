@@ -4,30 +4,53 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'signup.dart';
 import 'home.dart';
-//<a href="https://www.flaticon.com/kr/free-icons/-" title="카카오 톡 아이콘">카카오 톡 아이콘 제작자: Pixel perfect - Flaticon</a> 설명 섹션이 이 링크 넣기
-class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
 
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final primaryColor = const Color(0xFF20A090);
+  bool _obscurePassword = true;
 
   Future<void> login(BuildContext context) async {
     final email = emailController.text.trim();
     final password = passwordController.text;
 
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter both email and password")),
+      );
+      return;
+    }
+
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
     final response = await http.post(
       Uri.parse('https://forkcast.onrender.com/auth/login'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        'email' : email,
-        'password' : password
+        'email': email,
+        'password': password
       }),
     );
+
+    Navigator.pop(context); // 로딩 창 닫기
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final token = data['token'];
       final userId = data['userId'];
+
       if (token != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
@@ -43,16 +66,17 @@ class LoginPage extends StatelessWidget {
                 const Icon(Icons.check_circle, size: 60, color: Color(0xFF20A090)),
                 const SizedBox(height: 16),
                 const Text("Welcome Back", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                const SizedBox(height: 8),
-                Text("Token: $token\nUserID: $userId", textAlign: TextAlign.center),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage()));
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HomePage()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF20A090),
+                    backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                   child: const Text("Go to home"),
@@ -90,7 +114,7 @@ class LoginPage extends StatelessWidget {
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 64),
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
@@ -105,12 +129,19 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextField(
-                obscureText: true,
+                obscureText: _obscurePassword,
                 controller: passwordController,
                 decoration: InputDecoration(
                   hintText: "Enter your password",
                   prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: const Icon(Icons.visibility_off),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -119,13 +150,6 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              /*Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {},
-                  child: Text("Forgot Password?", style: TextStyle(color: primaryColor)),
-                ),
-              ),*/
               const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
@@ -138,9 +162,8 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-
+                    login(context);
                   },
-
                   child: const Text("Login", style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
               ),
@@ -158,45 +181,8 @@ class LoginPage extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              Row(
-                children: const [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.0),
-                    child: Text("OR"),
-                  ),
-                  Expanded(child: Divider()),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildSocialButton("Sign in with Google", "assets/google.png"),
-              const SizedBox(height: 12),
-              _buildSocialButton("Sign in with Apple", "assets/apple.jpg"),
-              const SizedBox(height: 12),
-              _buildSocialButton("Sign in with Facebook", "assets/kakao.png"),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton(String text, String assetPath) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: OutlinedButton.icon(
-        onPressed: () {},
-        icon: Image.asset(assetPath, height: 30, width: 30),
-        label: Text(text),
-        style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          side: BorderSide(color: Colors.grey.shade300),
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
         ),
       ),
     );

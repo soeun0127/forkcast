@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'calendar.dart';
-
+import 'check_information.dart';
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
@@ -117,7 +117,9 @@ class _ProfilePageState extends State<ProfilePage> {
       visualDensity: const VisualDensity(vertical: 0),
       // 밀도 균일화
       onTap: () {
-        // TODO: 기능 연결
+        if(title == 'Check Information') {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => CheckUserInfoPage()));
+        }
       },
     );
   }
