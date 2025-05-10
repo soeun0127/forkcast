@@ -78,7 +78,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-                      child: const Text("Go to set Data"),
+                      child: const Text("Go to set Data", style: TextStyle(color: Colors.white),),
                     ),
                   )
                 ],

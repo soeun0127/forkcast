@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:solution_challenge/get_access_token.dart';
 import 'package:solution_challenge/home.dart';
 
 class EditUserHealthPage extends StatefulWidget {
@@ -21,7 +22,8 @@ class _EditUserHealthPage extends State<EditUserHealthPage> {
   final secondColor = const Color(0xFFE8F3F1);
 
   Future<void> updateHealthInfo() async {
-    final url = Uri.parse('https://forkcast.onrender.com/user/health'); // 실제 API 주소로 변경
+    final url = Uri.parse('https://forkcast.onrender.com/user/health');
+    final token = getAccessToken();
 
     final data = {
       "diseaseId": int.tryParse(diseaseController.text) ?? 0,
@@ -34,7 +36,7 @@ class _EditUserHealthPage extends State<EditUserHealthPage> {
     try {
       final res = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
         body: jsonEncode(data),
       );
 

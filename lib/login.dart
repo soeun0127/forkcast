@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                     backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
-                  child: const Text("Go to home"),
+                  child: const Text("Go to home", style: TextStyle(color: Colors.white),),
                 )
               ],
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'community_dir/community.dart';
 import 'home.dart';
 import 'calendar.dart';
 import 'check_information.dart';
@@ -74,10 +75,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 MaterialPageRoute(builder: (context) => HomePage()),
               );
             } else if (index == 1) {
-              /* Navigator.push(
+               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MailPage()),//MailPage())
-              );*/
+                MaterialPageRoute(builder: (context) => CommunityPage()),
+              );
             } else if (index == 2) {
               Navigator.push(
                 context,
@@ -119,6 +120,9 @@ class _ProfilePageState extends State<ProfilePage> {
       onTap: () {
         if(title == 'Check Information') {
           Navigator.push(context, MaterialPageRoute(builder: (context) => CheckUserInfoPage()));
+        }
+        else if(title == 'User Community') {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityPage()));
         }
       },
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solution_challenge/community_dir/community.dart';
 import 'edit_health_data.dart';
 import 'calendar.dart';
 import 'profile.dart';
@@ -108,8 +109,6 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 12),
             _buildMenuItem(Icons.fact_check, "Weekly Meal Evaluation", () {}),
             const SizedBox(height: 12),
-            _buildMenuItem(Icons.people, "User Community", () {}),
-            const SizedBox(height: 12),
             _buildMenuItem(Icons.flag, "Today's Meal Record", () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => TodayMealRecordPage()));
             }),
@@ -203,10 +202,10 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => HomePage()),
               );
             } else if (index == 1) {
-             /* Navigator.push(
+              Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MailPage()),//MailPage())
-              );*/
+                MaterialPageRoute(builder: (context) => CommunityPage()),
+              );
             } else if (index == 2) {
               Navigator.push(
                 context,
