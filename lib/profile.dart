@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'community_dir/community.dart';
 import 'home.dart';
 import 'calendar.dart';
-import 'check_information.dart';
+import 'user_info/check_information.dart';
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 

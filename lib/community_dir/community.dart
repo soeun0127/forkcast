@@ -80,13 +80,16 @@ class _CommunityPageState extends State<CommunityPage> {
           final post = posts[index];
           final user = post['user'] ?? {};
           return InkWell(
-              onTap: () {
-            Navigator.push(
+              onTap: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => PostDetailPage(postId: post['id']),
               ),
             );
+            if (result == true){
+              fetchPosts();
+            }
           },
             child: Card(
               margin: const EdgeInsets.only(bottom: 16),

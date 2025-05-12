@@ -36,6 +36,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       setState(() {
         post = jsonDecode(response.body);
         isLoading = false;
+        Navigator.pop(context, true);
       });
     } else {
       setState(() {

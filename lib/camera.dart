@@ -9,10 +9,8 @@ late List<CameraDescription> _cameras;
 
 Future<void> initCameraModule() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Permission.camera.request();
   await Permission.storage.request();
-
   _cameras = await availableCameras();
 }
 
@@ -26,6 +24,7 @@ class CameraApp extends StatefulWidget {
 class _CameraAppState extends State<CameraApp> {
   late CameraController _controller;
   bool _isCameraReady = false;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -50,7 +49,9 @@ class _CameraAppState extends State<CameraApp> {
   }
 
   Future<void> _takeAndUploadPicture(BuildContext context) async {
-    if (!_controller.value.isInitialized) return;
+    if (!_controller.value.isInitialized || _isUploading) return;
+
+    setState(() => _isUploading = true);
 
     try {
       final XFile xfile = await _controller.takePicture();
@@ -67,27 +68,24 @@ class _CameraAppState extends State<CameraApp> {
         ),
       );
 
-      final response = await request.send();
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('업로드 성공')),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('업로드 실패')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('예상치 못한 에러')),
+          const SnackBar(content: Text('업로드 성공')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('업로드 실패: ${response.statusCode}')),
         );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('에러 발생: $e')),
+      );
+    } finally {
+      setState(() => _isUploading = false);
     }
   }
 
@@ -115,7 +113,11 @@ class _CameraAppState extends State<CameraApp> {
               padding: const EdgeInsets.all(20),
               child: GestureDetector(
                 onTap: () => _takeAndUploadPicture(context),
-                child: const Icon(Icons.cloud_upload, size: 70, color: Colors.white),
+                child: Icon(
+                  _isUploading ? Icons.hourglass_top : Icons.cloud_upload,
+                  size: 70,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

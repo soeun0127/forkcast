@@ -1,10 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:solution_challenge/community_dir/community.dart';
-import 'edit_health_data.dart';
+import 'package:solution_challenge/recommend/recommended_meal.dart';
+import 'barcode.dart';
+import 'user_info/edit_health_data.dart';
 import 'calendar.dart';
+import 'recommend/info_recommended_meal.dart';
 import 'profile.dart';
 import 'camera.dart';
 import 'today_meal_record.dart';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -104,7 +110,12 @@ class _HomePageState extends State<HomePage> {
 
             /// Button List
             _buildMenuItem(Icons.thumb_up, "Recommended Meals", () {
-
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InfoRecommendedMealPage(),
+                ),
+              );
             }),
             const SizedBox(height: 12),
             _buildMenuItem(Icons.fact_check, "Weekly Meal Evaluation", () {}),
@@ -168,7 +179,9 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => BarcodeScan()));
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1AB098),
                             shape: RoundedRectangleBorder(

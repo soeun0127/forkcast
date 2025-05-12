@@ -34,7 +34,9 @@ class _CheckUserHealthPageState extends State<CheckUserHealthPage> {
     final userData = {
       "birthdate": selectedDate.toIso8601String().split("T")[0],
       "gender": gender == 0 ? "MALE" : gender == 1 ? "FEMALE" : "OTHER",
-      "diseaseId": int.tryParse(diseaseController.text) ?? 0,
+      "height": double.tryParse(heightController.text) ?? 0,
+      "weight": double.tryParse(weightController.text) ?? 0,
+      "disease": diseaseController.text.trim(),
       "proteinLimit": int.tryParse(proteinController.text) ?? 0,
       "sugarLimit": int.tryParse(sugarController.text) ?? 0,
       "sodiumLimit": int.tryParse(sodiumController.text) ?? 0,
