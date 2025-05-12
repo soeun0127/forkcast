@@ -79,6 +79,9 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
       final String gender = "female"; //first['gender'] ?? 'unknown'
       final int height = 170; //first['height']
       final int weight = 60; //first['weight']
+      final int protein = first['proteinLimit'];
+      final int sugar = first['sugarLimit'];
+      final int sodium = first['sodiumLimit'];
 
       final List<String> diseases = decoded
           .map<String>((item) => item['disease']['name'].toString())
@@ -96,12 +99,18 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
           "gender": gender,
           "height": height,
           "weight": weight,
-          "allergy": "gluten",
-          "disease": diseases,
           "ingredients": ingredients,
+          "disease": diseases,
+          "protein": protein,
+          "sugar": sugar,
+          "sodium": sodium,
         },
         "meal_type": _selectedMealType,
-        "consumed_so_far": {},
+        "consumed_so_far": {
+          "protein": 20,
+          "sugar": 10,
+          "sodium": 40,
+        },
       };
 
       print("📤 전송 데이터: ${jsonEncode(requestBody)}");

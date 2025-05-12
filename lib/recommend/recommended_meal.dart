@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class RecommendedMeal extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -12,20 +12,23 @@ class RecommendedMeal extends StatefulWidget {
 }
 
 class _RecommendedMealState extends State<RecommendedMeal> {
-  late dynamic _meals; // String 또는 List 가능
+  Map<String, dynamic>? _meal;
+  Map<String, dynamic>? _nutrition;
+  List<dynamic>? _conflicts;
+
   final TextEditingController _controller = TextEditingController();
   bool _loading = false;
 
   @override
   void initState() {
     super.initState();
-    _meals = widget.data['diet'];
+    _meal = widget.data['diet']?['meal1']; // diet → meal1
+    _nutrition = widget.data['nutrition'];
+    _conflicts = widget.data['conflicts'];
   }
 
   Future<void> _addMeal(String input) async {
-    setState(() {
-      _loading = true;
-    });
+    setState(() => _loading = true);
 
     try {
       final response = await http.post(
@@ -37,7 +40,9 @@ class _RecommendedMealState extends State<RecommendedMeal> {
       if (response.statusCode == 200) {
         final newData = jsonDecode(response.body);
         setState(() {
-          _meals = newData['diet'];
+          _meal = newData['diet']?['meal1'];
+          _nutrition = newData['nutrition'];
+          _conflicts = newData['conflicts'];
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -56,44 +61,132 @@ class _RecommendedMealState extends State<RecommendedMeal> {
     }
   }
 
-  Widget _buildMealItem(dynamic meal) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(meal['name']?.toString() ?? 'Unnamed',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 4),
-          Text(
-            "${meal['calories']?.toString() ?? '-'} cals / ${meal['amount']?.toString() ?? '-'}",
-            style: const TextStyle(color: Colors.grey),
-          ),
-        ],
-      ),
+  Widget _buildMealCard() {
+    if (_meal == null) return const Text("추천 식단이 없습니다.");
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(_meal!['dish'] ?? '',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+
+        Text("🥗 Menu", style: const TextStyle(fontWeight: FontWeight.bold)),
+        ...(_meal!['menu'] as List<dynamic>).map((item) => Text("• $item")),
+
+        const SizedBox(height: 12),
+        Text("📝 Notes", style: const TextStyle(fontWeight: FontWeight.bold)),
+        ...(_meal!['notes'] as List<dynamic>).map((item) => Text("• $item")),
+
+        const SizedBox(height: 12),
+        Text("🍽 Nutrition", style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text("Calories: ${_meal!['calories']} kcal"),
+        Text("Protein: ${_meal!['protein']} g"),
+        Text("Carbs: ${_meal!['carbs']} g"),
+        Text("Fat: ${_meal!['fat']} g"),
+      ],
     );
   }
 
-  Widget _buildMealContent() {
-    if (_meals == null) {
-      return const Text("추천 식단이 없습니다.");
+  Widget _buildNutritionSection() {
+    if (_nutrition == null || _nutrition!.isEmpty) {
+      return const Text("No nutrition info available.");
     }
 
-    // 문자열(줄글) 형태일 때
-    if (_meals is String) {
-      return Text(_meals, style: const TextStyle(fontSize: 16));
-    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const Text("🍎 Nutrition per Ingredient",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 8),
+        ..._nutrition!.entries.map((entry) {
+          final item = entry.value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("• ${item['name'] ?? entry.key}",
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text("  - Calories: ${item['calories']} kcal"),
+                Text("  - Protein: ${item['protein']} g"),
+                Text("  - Fat: ${item['fat']} g"),
+                Text("  - Carbohydrates: ${item['carbohydrates']} g"),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
 
-    // 리스트 형태일 때
-    if (_meals is List) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: (_meals as List).map((meal) => _buildMealItem(meal)).toList(),
-      );
-    }
+  Widget _buildConflictSection() {
+    if (_conflicts == null || _conflicts!.isEmpty) return const SizedBox();
 
-    // 알 수 없는 형태
-    return const Text("식단 정보를 표시할 수 없습니다.");
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const Text("⚠️ Conflicting Ingredients",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: _conflicts!
+              .map((item) => Chip(
+            label: Text(item.toString()),
+            backgroundColor: Colors.red.shade100,
+            labelStyle: const TextStyle(color: Colors.red),
+          ))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInputSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const Text("Want to add a dish? Type it here!",
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFEAF4F0),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: TextField(
+            controller: _controller,
+            maxLines: 4,
+            decoration: const InputDecoration.collapsed(
+              hintText: "e.g., Tuna salad with egg and rice...",
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: _loading
+              ? null
+              : () {
+            final input = _controller.text.trim();
+            if (input.isNotEmpty) _addMeal(input);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1AB098),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+          child: _loading
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const Text("Add Meal", style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
   }
 
   @override
@@ -104,59 +197,17 @@ class _RecommendedMealState extends State<RecommendedMeal> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            /// 🥗 식단 카드
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: _buildMealContent(),
+                child: _buildMealCard(),
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            const Text(
-              "Want to add a dish? Type it here!",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFEAF4F0),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: TextField(
-                controller: _controller,
-                maxLines: 4,
-                decoration: const InputDecoration.collapsed(
-                  hintText: "e.g., Tuna salad with egg and rice...",
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            ElevatedButton(
-              onPressed: _loading
-                  ? null
-                  : () {
-                final input = _controller.text.trim();
-                if (input.isNotEmpty) {
-                  _addMeal(input);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1AB098),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: _loading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("Add Meal", style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
+            _buildNutritionSection(),
+            _buildConflictSection(),
+            _buildInputSection(),
           ],
         ),
       ),
