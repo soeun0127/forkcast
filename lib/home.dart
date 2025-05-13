@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:solution_challenge/community_dir/community.dart';
 import 'package:solution_challenge/recommend/recommended_meal.dart';
+import 'package:solution_challenge/test_ai.dart';
 import 'barcode.dart';
 import 'user_info/edit_health_data.dart';
 import 'calendar.dart';
@@ -118,9 +119,11 @@ class _HomePageState extends State<HomePage> {
               );
             }),
             const SizedBox(height: 12),
-            _buildMenuItem(Icons.fact_check, "Weekly Meal Evaluation", () {}),
+            _buildMenuItem(Icons.chat, "User Community", () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityPage()));
+            }),
             const SizedBox(height: 12),
-            _buildMenuItem(Icons.flag, "Today's Meal Record", () {
+            _buildMenuItem(Icons.restaurant, "Today's Meal Record", () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => TodayMealRecordPage()));
             }),
             const SizedBox(height: 12),
@@ -155,16 +158,12 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
+                      //없애기
+                      const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () async {
-                            await initCameraModule(); // 반드시 먼저 호출
-                            if (context.mounted) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const CameraApp()),
-                              );
-                            }
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => SimpleHelloPage()));
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1AB098),
@@ -172,10 +171,9 @@ class _HomePageState extends State<HomePage> {
                               borderRadius: BorderRadius.circular(24),
                             ),
                           ),
-                          child: const Text("Take Food Photo"),
+                          child: const Text("Scan Barcode"),
                         ),
                       ),
-
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(

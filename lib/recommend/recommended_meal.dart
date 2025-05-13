@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:solution_challenge/get_access_token.dart';
+import 'package:solution_challenge/home.dart';
 
 class RecommendedMeal extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -22,17 +24,16 @@ class _RecommendedMealState extends State<RecommendedMeal> {
   @override
   void initState() {
     super.initState();
-    _meal = widget.data['diet']?['meal1']; // diet → meal1
-    _nutrition = widget.data['nutrition'];
-    _conflicts = widget.data['conflicts'];
+    _meal = widget.data;
+    //_nutrition = widget.data['nutrition'];
+    //_conflicts = widget.data['conflicts'];
   }
-
+/*
   Future<void> _addMeal(String input) async {
     setState(() => _loading = true);
-
     try {
       final response = await http.post(
-        Uri.parse('http://34.64.249.244:7860/generate_diet'),
+        Uri.parse('http://34.64.249.244:5000/generate_diet'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'user_input': input}),
       );
@@ -60,24 +61,68 @@ class _RecommendedMealState extends State<RecommendedMeal> {
       });
     }
   }
+*/
+  Future<void> _submitDiet() async {
+    final token = await getAccessToken();
+    setState(() => _loading = true);
+
+    try {
+      final now = DateTime.now();
+      final formattedDate =
+          "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+      final payload = {
+        "date": formattedDate,
+        "mealType": _meal!['meal_type'],
+        "notes": _meal!['menu'],
+      };
+
+      final response = await http.post(
+        Uri.parse('https://forkcast.onrender.com/diet'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('save successfully')),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomePage()),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('save failed: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('error: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   Widget _buildMealCard() {
-    if (_meal == null) return const Text("추천 식단이 없습니다.");
-
+    if (_meal == null) return const Text("No recommended meal found");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(_meal!['dish'] ?? '',
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
-
         Text("🥗 Menu", style: const TextStyle(fontWeight: FontWeight.bold)),
         ...(_meal!['menu'] as List<dynamic>).map((item) => Text("• $item")),
-
         const SizedBox(height: 12),
         Text("📝 Notes", style: const TextStyle(fontWeight: FontWeight.bold)),
         ...(_meal!['notes'] as List<dynamic>).map((item) => Text("• $item")),
-
         const SizedBox(height: 12),
         Text("🍽 Nutrition", style: const TextStyle(fontWeight: FontWeight.bold)),
         Text("Calories: ${_meal!['calories']} kcal"),
@@ -92,7 +137,6 @@ class _RecommendedMealState extends State<RecommendedMeal> {
     if (_nutrition == null || _nutrition!.isEmpty) {
       return const Text("No nutrition info available.");
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -121,9 +165,8 @@ class _RecommendedMealState extends State<RecommendedMeal> {
     );
   }
 
-  Widget _buildConflictSection() {
+  /*Widget _buildConflictSection() {
     if (_conflicts == null || _conflicts!.isEmpty) return const SizedBox();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -144,46 +187,26 @@ class _RecommendedMealState extends State<RecommendedMeal> {
       ],
     );
   }
+   */
 
-  Widget _buildInputSection() {
+  Widget _buildSubmitButton() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 24),
-        const Text("Want to add a dish? Type it here!",
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFEAF4F0),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(12),
-          child: TextField(
-            controller: _controller,
-            maxLines: 4,
-            decoration: const InputDecoration.collapsed(
-              hintText: "e.g., Tuna salad with egg and rice...",
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: _loading
-              ? null
-              : () {
-            final input = _controller.text.trim();
-            if (input.isNotEmpty) _addMeal(input);
-          },
+          onPressed: _loading || _meal == null ? null : _submitDiet,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1AB098),
+            backgroundColor: Colors.blueAccent,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           child: _loading
               ? const CircularProgressIndicator(color: Colors.white)
-              : const Text("Add Meal", style: TextStyle(fontWeight: FontWeight.bold)),
+              : const Text("Add to diet",
+              style: TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -198,7 +221,8 @@ class _RecommendedMealState extends State<RecommendedMeal> {
         child: ListView(
           children: [
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -206,8 +230,8 @@ class _RecommendedMealState extends State<RecommendedMeal> {
               ),
             ),
             _buildNutritionSection(),
-            _buildConflictSection(),
-            _buildInputSection(),
+            //_buildConflictSection(),
+            _buildSubmitButton(),
           ],
         ),
       ),

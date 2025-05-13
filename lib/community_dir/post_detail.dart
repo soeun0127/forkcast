@@ -14,6 +14,7 @@ class PostDetailPage extends StatefulWidget {
 
 class _PostDetailPageState extends State<PostDetailPage> {
   Map<String, dynamic>? post;
+  List<dynamic> comments = [];
   bool isLoading = true;
   final TextEditingController _commentController = TextEditingController();
 
@@ -21,6 +22,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void initState() {
     super.initState();
     fetchPost();
+    fetchComments();
   }
 
   Future<void> fetchPost() async {
@@ -36,13 +38,30 @@ class _PostDetailPageState extends State<PostDetailPage> {
       setState(() {
         post = jsonDecode(response.body);
         isLoading = false;
-        Navigator.pop(context, true);
       });
     } else {
       setState(() {
         isLoading = false;
       });
       print('게시물 불러오기 실패: ${response.statusCode}');
+    }
+  }
+
+  Future<void> fetchComments() async {
+    final token = await getAccessToken();
+    final response = await http.get(
+      Uri.parse('https://forkcast.onrender.com/community/posts/${widget.postId}/comments'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        comments = jsonDecode(response.body);
+      });
+    } else {
+      print('댓글 불러오기 실패: ${response.statusCode}');
     }
   }
 
@@ -57,13 +76,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'content': content}),
+      body: jsonEncode({'comment': content}),
     );
 
     if (response.statusCode == 201) {
-      // 댓글 성공 시 새 댓글 반영
       _commentController.clear();
-      fetchPost(); // 댓글 다시 불러오기
+      fetchComments(); // ✅ 댓글만 다시 불러오기
     } else {
       print('댓글 등록 실패: ${response.statusCode}');
     }
@@ -93,13 +111,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
             const Text('Comments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Expanded(
-              child: ListView.builder(
-                itemCount: post!['comments'].length,
+              child: comments.isEmpty
+                  ? const Center(child: Text('No comments yet.'))
+                  : ListView.builder(
+                itemCount: comments.length,
                 itemBuilder: (context, index) {
-                  final comment = post!['comments'][index];
+                  final comment = comments[index];
+                  final user = comment['user'] ?? {};
+                  final createdAt = comment['createdAt']?.substring(0, 10) ?? '';
+
                   return ListTile(
-                    title: Text(comment['content']),
-                    subtitle: Text(comment['user']['name']),
+                    title: Text(comment['comment'] ?? ''),
+                    subtitle: Text('${user['name'] ?? '익명'} • $createdAt'),
                   );
                 },
               ),
@@ -132,3 +155,4 @@ class _PostDetailPageState extends State<PostDetailPage> {
     );
   }
 }
+

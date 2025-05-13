@@ -23,20 +23,23 @@ class _EditUserHealthPage extends State<EditUserHealthPage> {
 
   Future<void> updateHealthInfo() async {
     final url = Uri.parse('https://forkcast.onrender.com/user/health');
-    final token = getAccessToken();
+    final token = await getAccessToken();
 
     final data = {
-      "diseaseId": int.tryParse(diseaseController.text) ?? 0,
-      "proteinLimit": int.tryParse(proteinController.text) ?? 0,
-      "sugarLimit": int.tryParse(sugarController.text) ?? 0,
-      "sodiumLimit": int.tryParse(sodiumController.text) ?? 0,
+      "diseaseName": diseaseController.text.trim(),
+      "proteinLimit": proteinController.text.isEmpty ? null : int.tryParse(proteinController.text),
+      "sugarLimit": sugarController.text.isEmpty ? null : int.tryParse(sugarController.text),
+      "sodiumLimit": sodiumController.text.isEmpty ? null : int.tryParse(sodiumController.text),
       "notes": notesController.text.trim(),
     };
 
     try {
       final res = await http.put(
         url,
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode(data),
       );
 
@@ -44,11 +47,13 @@ class _EditUserHealthPage extends State<EditUserHealthPage> {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
       } else {
         print('PUT 실패: ${res.statusCode} ${res.body}');
+        print('token : $token');
       }
     } catch (e) {
       print('예외 발생: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

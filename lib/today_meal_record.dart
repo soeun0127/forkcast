@@ -16,7 +16,7 @@ class _TodayMealRecordPageState extends State<TodayMealRecordPage> {
   final TextEditingController _notesController = TextEditingController();
 
   String? _selectedMealType;
-  final List<String> _mealTypes = ['breakfast', 'launch', 'dinner'];
+  final List<String> _mealTypes = ['breakfast', 'lunch', 'dinner'];
 
   Future<void> submitMealRecord() async {
     if (_selectedMealType == null || _notesController.text.trim().isEmpty) {
@@ -102,7 +102,7 @@ class _TodayMealRecordPageState extends State<TodayMealRecordPage> {
               }).toList(),
             ),
             const SizedBox(height: 24),
-            const Text("Record your meal", style: TextStyle(fontSize: 16)),
+            const Text("Please enter the desired ingredients, separated by commas", style: TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             TextField(
               controller: _notesController,

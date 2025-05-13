@@ -88,7 +88,7 @@ class _CheckUserInfoPageState extends State<CheckUserInfoPage> {
               const Text("Your Health Information",
                   style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
               const SizedBox(height: 24),
-              buildInfoTile("Disease ID", _healthData?['diseaseId']?.toString()),
+              buildInfoTile("Disease", _healthData?['disease']['name']?.toString()),
               buildInfoTile("Protein Limit (g)", _healthData?['proteinLimit']?.toString()),
               buildInfoTile("Sugar Limit (g)", _healthData?['sugarLimit']?.toString()),
               buildInfoTile("Sodium Limit (mg)", _healthData?['sodiumLimit']?.toString()),

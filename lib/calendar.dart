@@ -22,7 +22,7 @@ class _CalendarPage extends State<CalendarPage> {
   DateTime _focusedDay = DateTime.now();
   bool _isFirstLoad = true;
 
-  List<dynamic> _meals = [];
+  Map<String, dynamic> _logs = {};
   List<String> _recommendations = [];
 
   @override
@@ -44,29 +44,25 @@ class _CalendarPage extends State<CalendarPage> {
   Future<void> fetchMealsForDay(DateTime day) async {
     try {
       final token = await getAccessToken();
-      final formattedDate =
-          "${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}";
+      final formattedDate = "${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}";
 
       final response = await http.get(
-        Uri.parse('https://your-api.com/meals?date=$formattedDate'),
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        Uri.parse('https://forkcast.onrender.com/diet/logs?date=$formattedDate'),
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
         setState(() {
-          _meals = jsonDecode(response.body);
+          _logs = data['logs'] ?? {};
         });
       } else {
-        setState(() {
-          _meals = [];
-        });
         print("Failed to fetch meals: ${response.statusCode}");
+        setState(() => _logs = {});
       }
     } catch (e) {
-      setState(() {
-        _meals = [];
-      });
       print("Error fetching meals: $e");
+      setState(() => _logs = {});
     }
   }
 
@@ -74,7 +70,7 @@ class _CalendarPage extends State<CalendarPage> {
     try {
       final token = await getAccessToken();
       final response = await http.get(
-        Uri.parse('https://your-api.com/recommendations'),
+        Uri.parse('https://forkcast.onrender.com/recommendations'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -91,6 +87,53 @@ class _CalendarPage extends State<CalendarPage> {
     }
   }
 
+  Widget _buildMealSection(String mealType, Map<String, dynamic> data) {
+    final nutrition = data['nutritionTotal'];
+    final foods = data['foodInfos'] as List;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(mealType.toUpperCase(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildNutrientText('Calories', '${nutrition['energy']} kcal'),
+                _buildNutrientText('Protein', '${nutrition['protein']} g'),
+                _buildNutrientText('Sugar', '${nutrition['sugar']} g'),
+                _buildNutrientText('Sodium', '${nutrition['sodium']} mg'),
+              ],
+            ),
+            const Divider(height: 20),
+            ...foods.map((item) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item['name'] ?? '-', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text("  - Calories: ${item['energy'] ?? 0} kcal  Protein: ${item['protein'] ?? 0} g  Sugar: ${item['sugar'] ?? 0} g  Sodium: ${item['sodium'] ?? 0} mg"),
+                const SizedBox(height: 8),
+              ],
+            ))
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNutrientText(String label, String value) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey)),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,10 +141,7 @@ class _CalendarPage extends State<CalendarPage> {
         toolbarHeight: 80,
         title: const Align(
           alignment: Alignment.centerLeft,
-          child: Text(
-            "Check your health report",
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-          ),
+          child: Text("Check your health report", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -110,10 +150,7 @@ class _CalendarPage extends State<CalendarPage> {
       body: Column(
         children: [
           const SizedBox(height: 8),
-          const Text(
-            'MONTH',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.teal),
-          ),
+          const Text('MONTH', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.teal)),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TableCalendar(
@@ -129,14 +166,8 @@ class _CalendarPage extends State<CalendarPage> {
                 weekendStyle: TextStyle(color: Colors.teal),
               ),
               calendarStyle: CalendarStyle(
-                todayDecoration: const BoxDecoration(
-                  color: Colors.teal,
-                  shape: BoxShape.circle,
-                ),
-                selectedDecoration: BoxDecoration(
-                  color: Color(0xFF1AB098),
-                  shape: BoxShape.circle,
-                ),
+                todayDecoration: const BoxDecoration(color: Colors.teal, shape: BoxShape.circle),
+                selectedDecoration: BoxDecoration(color: Color(0xFF1AB098), shape: BoxShape.circle),
                 outsideDaysVisible: false,
               ),
               availableGestures: AvailableGestures.horizontalSwipe,
@@ -147,47 +178,17 @@ class _CalendarPage extends State<CalendarPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                const Text(
-                  'Analyze Today\'s Meals',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                const Text('Analyze Today\'s Meals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                if (_meals.isEmpty)
+                if (_logs.isEmpty)
                   const Text('No meals found for this day.')
                 else
-                  ..._meals.map((meal) {
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              meal['foodName'],
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildNutrientText('Calories', '${meal['calories']} kcal'),
-                                _buildNutrientText('Protein', '${meal['protein']} g'),
-                                _buildNutrientText('Sugar', '${meal['sugar']} g'),
-                                _buildNutrientText('Sodium', '${meal['sodium']} mg'),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
+                  ...['breakfast', 'lunch', 'dinner'].map((type) {
+                    final meal = _logs[type];
+                    return meal == null ? const SizedBox() : _buildMealSection(type, meal);
                   }),
-
                 const SizedBox(height: 16),
-                const Text(
-                  'Weekly Recommendations',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                const Text('Weekly Recommendations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 if (_recommendations.isEmpty)
                   const Text("No recommendations found.")
@@ -240,16 +241,6 @@ class _CalendarPage extends State<CalendarPage> {
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: ''),
         ],
       ),
-    );
-  }
-
-  Widget _buildNutrientText(String label, String value) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey)),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-      ],
     );
   }
 }

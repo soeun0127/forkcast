@@ -36,7 +36,7 @@ class _CheckUserHealthPageState extends State<CheckUserHealthPage> {
       "gender": gender == 0 ? "MALE" : gender == 1 ? "FEMALE" : "OTHER",
       "height": double.tryParse(heightController.text) ?? 0,
       "weight": double.tryParse(weightController.text) ?? 0,
-      "disease": diseaseController.text.trim(),
+      "diseaseName": diseaseController.text.trim(),
       "proteinLimit": int.tryParse(proteinController.text) ?? 0,
       "sugarLimit": int.tryParse(sugarController.text) ?? 0,
       "sodiumLimit": int.tryParse(sodiumController.text) ?? 0,

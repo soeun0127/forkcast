@@ -16,34 +16,17 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
   final Color secondColor = const Color(0xFFEAF4F0);
   final TextEditingController _notesController = TextEditingController();
   String? _selectedMealType;
-  final List<String> _mealTypes = ['breakfast', 'launch', 'dinner'];
+  final List<String> _mealTypes = ['breakfast', 'lunch', 'dinner'];
 
-  /*Future<List<Map<String, dynamic>>> fetchUserInfo() async {
-    final token = await getAccessToken();
-
-    final response = await http.get(
-      Uri.parse('https://forkcast.onrender.com/user/health'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
     );
-
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-
-      print('🔵 받은 사용자 데이터: $decoded');
-
-      if (decoded is List && decoded.isNotEmpty) {
-        return decoded.cast<Map<String, dynamic>>();
-      } else {
-        throw Exception('빈 리스트 또는 잘못된 데이터 형식입니다.');
-      }
-    } else {
-      throw Exception('사용자 정보 가져오기 실패: ${response.statusCode}');
-    }
   }
-   */
 
   Future<void> submitMealRecord() async {
     if (_selectedMealType == null || _notesController.text.trim().isEmpty) {
@@ -52,6 +35,8 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
       );
       return;
     }
+
+    _showLoadingDialog();
 
     try {
       final token = await getAccessToken();
@@ -68,24 +53,28 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
       }
 
       final decoded = jsonDecode(response.body);
-      print('🔵 받은 사용자 데이터: $decoded');
+      print("🔹 [USER DATA] 백엔드에서 받아온 사용자 데이터:");
+      print(const JsonEncoder.withIndent('  ').convert(decoded));
 
       if (decoded is! List || decoded.isEmpty) {
         throw Exception('빈 리스트 또는 잘못된 데이터 형식입니다.');
       }
 
       final Map<String, dynamic> first = decoded[0];
-      final int age = 20; //_calculateAge(first['birthDate'])
-      final String gender = "female"; //first['gender'] ?? 'unknown'
-      final int height = 170; //first['height']
-      final int weight = 60; //first['weight']
-      final int protein = first['proteinLimit'];
-      final int sugar = first['sugarLimit'];
-      final int sodium = first['sodiumLimit'];
+      final int age = _calculateAge(first['user']['birthdate']);
+      final String gender = first['user']['gender'] ?? 'unknown';
+      final int height = first['user']['height'];
+      final int weight = first['user']['weight'];
+      final int? protein = first['proteinLimit'];
+      final int? sugar = first['sugarLimit'];
+      final int? sodium = first['sodiumLimit'];
 
-      final List<String> diseases = decoded
-          .map<String>((item) => item['disease']['name'].toString())
-          .toList();
+      final String? diseases = first['disease']?['name'];
+      if(diseases == null){
+        throw Exception("질병 이름이 없음");
+      }
+
+      print("$age, $gender, $height, $weight, $diseases");
 
       final List<String> ingredients = _notesController.text.trim()
           .split(',')
@@ -100,29 +89,34 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
           "height": height,
           "weight": weight,
           "ingredients": ingredients,
-          "disease": diseases,
-          "protein": protein,
-          "sugar": sugar,
-          "sodium": sodium,
+          "disease": diseases, //diseases
         },
         "meal_type": _selectedMealType,
         "consumed_so_far": {
           "protein": 20,
-          "sugar": 10,
+          "fat": 5,
+          "carbs": 30,
           "sodium": 40,
-        },
+        }
       };
 
-      print("📤 전송 데이터: ${jsonEncode(requestBody)}");
+      print("🟢 [REQUEST BODY] AI 서버에 전송할 데이터:");
+      print(const JsonEncoder.withIndent('  ').convert(requestBody));
 
       final aiResponse = await http.post(
-        Uri.parse('http://34.64.249.244:7860/generate_diet'),
+        Uri.parse('http://34.64.214.63:5000/generate_diet'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
 
+      if (context.mounted) Navigator.of(context).pop();
+
       if (aiResponse.statusCode == 200) {
         final aiData = jsonDecode(aiResponse.body);
+
+        print("🟣 [AI RESPONSE] AI 서버에서 받은 추천 식단:");
+        print(const JsonEncoder.withIndent('  ').convert(aiData));
+
         if (context.mounted) {
           Navigator.push(
             context,
@@ -135,13 +129,13 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
         throw Exception('AI 오류: ${aiResponse.statusCode}');
       }
     } catch (e) {
-      print("❌ 오류 발생: $e");
+      if (context.mounted) Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("에러: $e")),
       );
+      print("에러 $e");
     }
   }
-
   int _calculateAge(String birthdate) {
     final birth = DateTime.parse(birthdate);
     final now = DateTime.now();
@@ -157,9 +151,9 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 80,
-        title: Align(
-          alignment: Alignment.centerLeft, // 텍스트를 왼쪽으로 정렬
-          child: const Text(
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
             "Today's meal record",
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
           ),
@@ -211,13 +205,7 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () async {
-                  try {
-                    await submitMealRecord();
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('오류 발생: $e')),
-                    );
-                  }
+                  await submitMealRecord();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,
@@ -225,7 +213,10 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text("record", style: TextStyle(fontSize: 18, color: Colors.white)),
+                child: const Text(
+                  "record",
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
               ),
             ),
           ],
