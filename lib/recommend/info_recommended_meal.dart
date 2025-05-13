@@ -104,7 +104,7 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
       print(const JsonEncoder.withIndent('  ').convert(requestBody));
 
       final aiResponse = await http.post(
-        Uri.parse('http://34.64.214.63:5000/generate_diet'),
+        Uri.parse('http://34.64.249.244:5000/generate_diet'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
