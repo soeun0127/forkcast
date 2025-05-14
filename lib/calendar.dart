@@ -110,14 +110,35 @@ class _CalendarPage extends State<CalendarPage> {
               ],
             ),
             const Divider(height: 20),
-            ...foods.map((item) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item['name'] ?? '-', style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text("  - Calories: ${item['energy'] ?? 0} kcal  Protein: ${item['protein'] ?? 0} g  Sugar: ${item['sugar'] ?? 0} g  Sodium: ${item['sodium'] ?? 0} mg"),
-                const SizedBox(height: 8),
-              ],
-            ))
+            ...foods.where((item) {
+              final name = item['name'];
+              final energy = item['energy'] ?? 0;
+              final protein = item['protein'] ?? 0;
+              final sugar = item['sugar'] ?? 0;
+              final sodium = item['sodium'] ?? 0;
+
+              // ❌ 이름이 없거나 모든 영양소 값이 0이면 제외
+              final isEmptyName = name == null || name.toString().trim().isEmpty;
+              final allZero = energy == 0 && protein == 0 && sugar == 0 && sodium == 0;
+
+              return !isEmptyName && !allZero;
+            }).map((item) {
+              final List<String> parts = [];
+
+              if ((item['energy'] ?? 0) > 0) parts.add("Calories: ${item['energy']} kcal\n");
+              if ((item['protein'] ?? 0) > 0) parts.add("- Protein: ${item['protein']} g\n");
+              if ((item['sugar'] ?? 0) > 0) parts.add("- Sugar: ${item['sugar']} g\n");
+              if ((item['sodium'] ?? 0) > 0) parts.add("- Sodium: ${item['sodium']} mg\n");
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text("  - ${parts.join("  ")}"),
+                  const SizedBox(height: 8),
+                ],
+              );
+            })
           ],
         ),
       ),
@@ -188,11 +209,11 @@ class _CalendarPage extends State<CalendarPage> {
                     return meal == null ? const SizedBox() : _buildMealSection(type, meal);
                   }),
                 const SizedBox(height: 16),
-                const Text('Weekly Recommendations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                if (_recommendations.isEmpty)
-                  const Text("No recommendations found.")
-                else
+                //const Text('Weekly Recommendations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                //const SizedBox(height: 8),
+                //if (_recommendations.isEmpty)
+                //  const Text("No recommendations found.")
+                /*else
                   Card(
                     color: const Color(0xFFF9F9F9),
                     child: Padding(
@@ -210,7 +231,7 @@ class _CalendarPage extends State<CalendarPage> {
                         }).toList(),
                       ),
                     ),
-                  ),
+                  ),*/
               ],
             ),
           ),

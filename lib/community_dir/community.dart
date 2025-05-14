@@ -92,6 +92,7 @@ class _CommunityPageState extends State<CommunityPage> {
             }
           },
             child: Card(
+              color: const Color(0xFFEAF4F0),
               margin: const EdgeInsets.only(bottom: 16),
               elevation: 3,
               child: Padding(
@@ -127,7 +128,7 @@ class _CommunityPageState extends State<CommunityPage> {
           Navigator.push(context, MaterialPageRoute(builder: (context) => const NewPostPage()));
         },
         backgroundColor: const Color(0xFF20A090),
-        child: const Icon(Icons.edit),
+        child: const Icon(Icons.edit, color: Colors.white),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

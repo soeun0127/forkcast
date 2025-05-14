@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:solution_challenge/community_dir/community.dart';
 import 'package:solution_challenge/recommend/recommended_meal.dart';
-import 'package:solution_challenge/test_ai.dart';
+import 'package:solution_challenge/show_barcode.dart';
 import 'barcode.dart';
 import 'user_info/edit_health_data.dart';
 import 'calendar.dart';
@@ -12,6 +12,7 @@ import 'profile.dart';
 import 'camera.dart';
 import 'today_meal_record.dart';
 import 'package:http/http.dart' as http;
+import 'package:barcode_scan2/barcode_scan2.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,11 +25,27 @@ class _HomePageState extends State<HomePage> {
   int weekOffset = 0;
   int _selectedIndex = 0;
   DateTime today = DateTime.now();
+  String barcode = "";
 
   List<DateTime> getCurrentWeekDates() {
     int weekday = today.weekday;
     DateTime start = today.subtract(Duration(days: weekday - 1)).add(Duration(days: 7 * weekOffset));
     return List.generate(7, (i) => start.add(Duration(days: i)));
+  }
+
+  Future<void> scanBarcode() async {
+    try{
+      var result = await BarcodeScanner.scan();
+      barcode = result.rawContent;
+
+      if (barcode.isNotEmpty){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => BarcodeResultPage(barcode: barcode,)));
+      }
+    } catch (e) {
+      setState(() {
+        barcode = "Failed to get barcode : $e";
+      });
+    }
   }
 
   @override
@@ -158,35 +175,17 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      //없애기
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => SimpleHelloPage()));
-                          },
+                          onPressed: scanBarcode,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1AB098),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                             ),
                           ),
-                          child: const Text("Scan Barcode"),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => BarcodeScan()));
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1AB098),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: const Text("Scan Barcode"),
+                          child: const Text("Scan Barcode",style: TextStyle(color: Colors.white)),
                         ),
                       ),
                     ],

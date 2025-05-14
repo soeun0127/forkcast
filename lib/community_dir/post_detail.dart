@@ -145,7 +145,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF20A090),
                   ),
-                  child: const Text('Post'),
+                  child: const Text('Post', style: TextStyle(color: Colors.white),),
                 ),
               ],
             ),

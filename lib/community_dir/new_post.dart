@@ -70,37 +70,49 @@ class _NewPostPageState extends State<NewPostPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Title",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                hintText: "Enter post title",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-                fillColor: Colors.white,
+            Card(
+              color: const Color(0xFFEAF4F0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Title",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _titleController,
+                      decoration: const InputDecoration.collapsed(hintText: "Enter post title"),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              "Content",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _contentController,
-              decoration: InputDecoration(
-                hintText: "Write your content here...",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-                fillColor: Colors.white,
+            Card(
+              color: const Color(0xFFEAF4F0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Content",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _contentController,
+                      decoration: const InputDecoration.collapsed(hintText: "Write your content here..."),
+                      maxLines: null,
+                      minLines: 10,
+                      keyboardType: TextInputType.multiline,
+                    ),
+                  ],
+                ),
               ),
-              maxLines: null,
-              minLines: 10,
-              keyboardType: TextInputType.multiline,
             ),
             const SizedBox(height: 30),
             SizedBox(
@@ -114,10 +126,8 @@ class _NewPostPageState extends State<NewPostPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  "Save Post",
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: const Text("Save Post",
+                    style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
             ),
           ],

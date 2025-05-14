@@ -104,7 +104,7 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
       print(const JsonEncoder.withIndent('  ').convert(requestBody));
 
       final aiResponse = await http.post(
-        Uri.parse('http://34.64.249.244:5000/generate_diet'),
+        Uri.parse('http://34.82.141.225:8000/generate-meal'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
@@ -154,7 +154,7 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
         title: const Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            "Today's meal record",
+            "Recommended Meal",
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
           ),
         ),
@@ -184,7 +184,7 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
               }).toList(),
             ),
             const SizedBox(height: 24),
-            const Text("Record your meal", style: TextStyle(fontSize: 16)),
+            const Text("Please enter the desired ingredients, separated by commas", style: TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             TextField(
               controller: _notesController,
@@ -214,7 +214,7 @@ class _InfoRecommendedMealPageState extends State<InfoRecommendedMealPage> {
                   ),
                 ),
                 child: const Text(
-                  "record",
+                  "Get Suggestion",
                   style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),

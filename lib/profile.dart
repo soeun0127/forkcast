@@ -53,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 _buildProfileTile(Icons.favorite_border, 'Check Information'),
                 _buildProfileTile(
-                    Icons.calendar_month, 'Weekly Meal Evaluation'),
+                    Icons.calendar_month, 'Analyze Meal'),
                 _buildProfileTile(Icons.forum, 'User Community'),
                 _buildProfileTile(Icons.logout, 'log out'),
               ],
@@ -123,6 +123,9 @@ class _ProfilePageState extends State<ProfilePage> {
         }
         else if(title == 'User Community') {
           Navigator.push(context, MaterialPageRoute(builder: (context) => CommunityPage()));
+        }
+        else if(title == 'Analyze Meal') {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => CalendarPage()));
         }
       },
     );
