@@ -40,7 +40,6 @@ class _RecommendedMealState extends State<RecommendedMeal> {
                 .replaceAll(r'\n', '\n')
                 .replaceAll(r'\"', '"');
 
-            // ✅ "숫자+단위" 형태에서 숫자만 추출 (예: 30g → 30)
             unescaped = unescaped.replaceAllMapped(
               RegExp(r'(?<="(calories|protein|carbs|fat|sodium)"\s*:\s*)(\d+)([a-zA-Z]+)'),
                   (match) => '${match[2]}',
@@ -66,14 +65,20 @@ class _RecommendedMealState extends State<RecommendedMeal> {
       final formattedDate =
           "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
+      final List<dynamic> menuItems = (_meal!['menu'] is List)
+          ? _meal!['menu']
+          : (_meal!['menu'] is String)
+          ? [_meal!['menu']]
+          : [];
+
       print("meal_type : ${_meal!['meal_type']}");
-      print("notes : ${_meal!['menu']}");
+      print("notes : ${menuItems}");
       print("date : ${formattedDate}");
 
       final payload = {
         "date": formattedDate,
         "mealType": _meal!['meal_type'],
-        "notes": _meal!['menu'],
+        "notes": (menuItems.isNotEmpty) ? menuItems.join(',') : "",
       };
 
       final response = await http.post(
@@ -186,7 +191,7 @@ class _RecommendedMealState extends State<RecommendedMeal> {
       appBar: AppBar(
         toolbarHeight: 80,
         title: Align(
-          alignment: Alignment.centerLeft, // 텍스트를 왼쪽으로 정렬
+          alignment: Alignment.centerLeft,
           child: const Text(
             "Have a healthy meal",
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),

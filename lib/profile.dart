@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'community_dir/community.dart';
+import 'get_access_token.dart';
 import 'home.dart';
 import 'calendar.dart';
 import 'onboarding.dart';
 import 'user_info/check_information.dart';
+import 'package:http/http.dart' as http;
+
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
@@ -15,16 +20,57 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _selectedIndex = 3;
+  Map<String, dynamic>? _healthData;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchHealthData();
+  }
+
+  Future<void> fetchHealthData() async {
+    final url = Uri.parse('https://forkcast.onrender.com/user/health');
+    final token = await getAccessToken();
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is List && decoded.isNotEmpty) {
+          setState(() {
+            _healthData = decoded[0]; // 첫 번째 객체만 사용
+            _loading = false;
+          });
+        } else {
+          print("데이터 없음");
+          setState(() => _loading = false);
+        }
+      } else {
+        print("불러오기 실패: ${response.statusCode} ${response.body}");
+        setState(() => _loading = false);
+      }
+    } catch (e) {
+      print("예외 발생: $e");
+      setState(() => _loading = false);
+    }
+  }
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access_token');
-
-    if (token == null) return;
-
     await prefs.remove('access_token');
-    Navigator.push(context, MaterialPageRoute(builder: (context) => OnboardingPage()));
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const OnboardingPage()),
+          (route) => false,
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'name : Soun Lee', //$name
+                  'name : ${_healthData?["user"]["name"]}', //$name
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -51,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'email : soeun@hufs.ac.kr', //$email
+                  'email : ${_healthData?["user"]["email"]}', //$email
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,

@@ -29,7 +29,7 @@ class _CalendarPage extends State<CalendarPage> {
   void initState() {
     super.initState();
     fetchMealsForDay(_selectedDay);
-    fetchRecommendations();
+    //fetchRecommendations();
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -53,6 +53,11 @@ class _CalendarPage extends State<CalendarPage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+
+        final decoded = jsonDecode(response.body);
+        const encoder = JsonEncoder.withIndent('  ');
+        print("PRETTY MAP STRUCTURE:\n${encoder.convert(decoded)}");
+
         setState(() {
           _logs = data['logs'] ?? {};
         });
@@ -71,13 +76,16 @@ class _CalendarPage extends State<CalendarPage> {
       final token = await getAccessToken();
       final response = await http.get(
         Uri.parse('https://forkcast.onrender.com/recommendations'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          'Authorization': 'Bearer $token',
+          "Content-Type": "application/json",
+        },
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          _recommendations = List<String>.from(data['messages']);
+          print("${data}");
         });
       } else {
         print("Failed to fetch recommendations: ${response.statusCode}");
@@ -112,23 +120,15 @@ class _CalendarPage extends State<CalendarPage> {
             const Divider(height: 20),
             ...foods.where((item) {
               final name = item['name'];
-              final energy = item['energy'] ?? 0;
-              final protein = item['protein'] ?? 0;
-              final sugar = item['sugar'] ?? 0;
-              final sodium = item['sodium'] ?? 0;
-
-              // ❌ 이름이 없거나 모든 영양소 값이 0이면 제외
-              final isEmptyName = name == null || name.toString().trim().isEmpty;
-              final allZero = energy == 0 && protein == 0 && sugar == 0 && sodium == 0;
-
-              return !isEmptyName && !allZero;
+              return name != null && name.toString().trim().isNotEmpty;
             }).map((item) {
               final List<String> parts = [];
 
-              if ((item['energy'] ?? 0) > 0) parts.add("Calories: ${item['energy']} kcal\n");
-              if ((item['protein'] ?? 0) > 0) parts.add("- Protein: ${item['protein']} g\n");
-              if ((item['sugar'] ?? 0) > 0) parts.add("- Sugar: ${item['sugar']} g\n");
-              if ((item['sodium'] ?? 0) > 0) parts.add("- Sodium: ${item['sodium']} mg\n");
+              // 모든 값이 0이어도 다 출력
+              parts.add("Calories: ${item['energy'] ?? 0} kcal\n");
+              parts.add("- Protein: ${item['protein'] ?? 0} g\n");
+              parts.add("- Sugar: ${item['sugar'] ?? 0} g\n");
+              parts.add("- Sodium: ${item['sodium'] ?? 0} mg\n");
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
