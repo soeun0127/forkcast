@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solution_challenge/community_dir/community.dart';
 import 'package:solution_challenge/recommend/recommended_meal.dart';
 import 'package:solution_challenge/show_barcode.dart';
 import 'barcode.dart';
+import 'onboarding.dart';
 import 'user_info/edit_health_data.dart';
 import 'calendar.dart';
 import 'recommend/info_recommended_meal.dart';

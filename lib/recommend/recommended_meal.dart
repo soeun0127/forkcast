@@ -66,6 +66,10 @@ class _RecommendedMealState extends State<RecommendedMeal> {
       final formattedDate =
           "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
+      print("meal_type : ${_meal!['meal_type']}");
+      print("notes : ${_meal!['menu']}");
+      print("date : ${formattedDate}");
+
       final payload = {
         "date": formattedDate,
         "mealType": _meal!['meal_type'],

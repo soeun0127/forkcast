@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'community_dir/community.dart';
 import 'home.dart';
 import 'calendar.dart';
+import 'onboarding.dart';
 import 'user_info/check_information.dart';
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -13,6 +15,16 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _selectedIndex = 3;
+
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+
+    if (token == null) return;
+
+    await prefs.remove('access_token');
+    Navigator.push(context, MaterialPageRoute(builder: (context) => OnboardingPage()));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +138,9 @@ class _ProfilePageState extends State<ProfilePage> {
         }
         else if(title == 'Analyze Meal') {
           Navigator.push(context, MaterialPageRoute(builder: (context) => CalendarPage()));
+        }
+        else if(title == 'log out') {
+          logout();
         }
       },
     );
