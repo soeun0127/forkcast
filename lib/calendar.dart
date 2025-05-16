@@ -17,10 +17,22 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPage extends State<CalendarPage> {
   int _selectedIndex = 2;
-
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
   bool _isFirstLoad = true;
+
+  Map<String, dynamic>? _healthData;
+  bool _loading = true;
+
+  double _totalSodium = 0;
+  double _totalSugar = 0;
+  double _totalProtein = 0;
+
+  double limitProtein = 0;
+  double limitSugar = 0;
+  double limitSodium = 0;
+
+  String _warningMessage = '';
 
   Map<String, dynamic> _logs = {};
   List<String> _recommendations = [];
@@ -29,7 +41,6 @@ class _CalendarPage extends State<CalendarPage> {
   void initState() {
     super.initState();
     fetchMealsForDay(_selectedDay);
-    //fetchRecommendations();
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -39,6 +50,81 @@ class _CalendarPage extends State<CalendarPage> {
       _isFirstLoad = false;
     });
     fetchMealsForDay(selectedDay);
+  }
+
+  Future<void> calculateTotal() async {
+    _totalProtein = 0;
+    _totalSodium = 0;
+    _totalSugar = 0;
+
+    for (var type in ['breakfast', 'lunch', 'dinner']) {
+      final meal = _logs[type];
+
+      if(meal != null) {
+        final nutrition = meal['nutritionTotal'];
+        _totalProtein += (nutrition['protein'] ?? 0).toDouble();
+        _totalSugar += (nutrition['sugar'] ?? 0).toDouble();
+        _totalSodium += (nutrition['sodium'] ?? 0).toDouble();
+      }
+    }
+
+    await checkNutrientWarnings();
+  }
+
+  Future<void> checkNutrientWarnings() async {
+    List<String> warning = [];
+
+    await fetchHealthData();
+
+    if(_totalProtein > limitProtein) {
+      warning.add("⚠️Protein intake exceeded!");
+    }
+    else if(_totalSugar > limitSugar) {
+      warning.add("⚠️Sugar intake exceeded!");
+    }
+    else if(_totalSodium > limitSodium) {
+      warning.add("⚠️Sodium intake exceeded!");
+    }
+
+    setState(() {
+      _warningMessage = warning.join('\n');
+    });
+  }
+
+  Future<void> fetchHealthData() async {
+    final url = Uri.parse('https://forkcast.onrender.com/user/health');
+    final token = await getAccessToken();
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is List && decoded.isNotEmpty) {
+          setState(() {
+            _healthData = decoded[0]; // 첫 번째 객체만 사용
+            _loading = false;
+          });
+
+          limitProtein = _healthData?['proteinLimit'];
+          limitSugar = _healthData?['sugarLimit'];
+          limitSodium = _healthData?['sodiumLimit'];
+
+        } else {
+          print("데이터 없음");
+          setState(() => _loading = false);
+        }
+      } else {
+        print("불러오기 실패: ${response.statusCode} ${response.body}");
+        setState(() => _loading = false);
+      }
+    } catch (e) {
+      print("예외 발생: $e");
+      setState(() => _loading = false);
+    }
   }
 
   Future<void> fetchMealsForDay(DateTime day) async {
@@ -61,6 +147,9 @@ class _CalendarPage extends State<CalendarPage> {
         setState(() {
           _logs = data['logs'] ?? {};
         });
+
+        await calculateTotal();
+
       } else {
         print("Failed to fetch meals: ${response.statusCode}");
         setState(() => _logs = {});
@@ -68,30 +157,6 @@ class _CalendarPage extends State<CalendarPage> {
     } catch (e) {
       print("Error fetching meals: $e");
       setState(() => _logs = {});
-    }
-  }
-
-  Future<void> fetchRecommendations() async {
-    try {
-      final token = await getAccessToken();
-      final response = await http.get(
-        Uri.parse('https://forkcast.onrender.com/recommendations'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          "Content-Type": "application/json",
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          print("${data}");
-        });
-      } else {
-        print("Failed to fetch recommendations: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error fetching recommendations: $e");
     }
   }
 
@@ -199,6 +264,17 @@ class _CalendarPage extends State<CalendarPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
+                if (_warningMessage.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(_warningMessage, style: const TextStyle(color: Colors.red, fontSize: 16)),
+                  ),
+                const SizedBox(height: 8),
                 const Text('Analyze Today\'s Meals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 if (_logs.isEmpty)
@@ -209,29 +285,6 @@ class _CalendarPage extends State<CalendarPage> {
                     return meal == null ? const SizedBox() : _buildMealSection(type, meal);
                   }),
                 const SizedBox(height: 16),
-                //const Text('Weekly Recommendations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                //const SizedBox(height: 8),
-                //if (_recommendations.isEmpty)
-                //  const Text("No recommendations found.")
-                /*else
-                  Card(
-                    color: const Color(0xFFF9F9F9),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: _recommendations.map((text) {
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text("• ", style: TextStyle(fontSize: 16)),
-                              Expanded(child: Text(text, style: const TextStyle(fontSize: 16))),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),*/
               ],
             ),
           ),

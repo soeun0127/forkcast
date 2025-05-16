@@ -105,9 +105,12 @@ class _SignUpPageState extends State<SignUpPage> {
           child: ListView(
             children: [
               const SizedBox(height: 16),
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.pop(context),
+                ),
               ),
               const SizedBox(height: 8),
               const Center(

@@ -9,7 +9,7 @@
     <!-- ✅ 카메라 하드웨어 명시 -->
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <application
-        android:label="solution_challenge"
+        android:label="forkcast"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true">

@@ -43,6 +43,7 @@ dependencies:
   path: ^1.9.1
   barcode_scan2: ^4.5.1
   lucide_icons: ^0.257.0
+  flutter_launcher_icons: ^0.14.3
 
 dev_dependencies:
   flutter_test:
@@ -99,3 +100,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_launcher_icons:
+  image_path: "assets/forkcast.png" # 아이콘 PNG 경로 (네가 준비한 파일 경로로 수정)
+  android: true
+  ios: true

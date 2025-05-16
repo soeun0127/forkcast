@@ -80,17 +80,17 @@ class _CommunityPageState extends State<CommunityPage> {
           final post = posts[index];
           final user = post['user'] ?? {};
           return InkWell(
-              onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PostDetailPage(postId: post['id']),
-              ),
-            );
-            if (result == true){
-              fetchPosts();
-            }
-          },
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PostDetailPage(postId: post['id']),
+                ),
+              );
+              if (result == true) {
+                fetchPosts(); // ✅ 댓글 달린 경우도 반영
+              }
+            },
             child: Card(
               color: const Color(0xFFEAF4F0),
               margin: const EdgeInsets.only(bottom: 16),
@@ -124,8 +124,14 @@ class _CommunityPageState extends State<CommunityPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const NewPostPage()));
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NewPostPage()),
+          );
+          if (result == true) {
+            fetchPosts(); // ✅ 작성 후 목록 새로고침
+          }
         },
         backgroundColor: const Color(0xFF20A090),
         child: const Icon(Icons.edit, color: Colors.white),
@@ -137,27 +143,14 @@ class _CommunityPageState extends State<CommunityPage> {
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
-            // 화면 전환 코드 추가
             if (index == 0) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const HomePage()));
             } else if (index == 1) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CommunityPage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const CommunityPage()));
             } else if (index == 2) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CalendarPage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const CalendarPage()));
             } else if (index == 3) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfilePage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
             }
           });
         },

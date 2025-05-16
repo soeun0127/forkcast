@@ -41,7 +41,7 @@ class _NewPostPageState extends State<NewPostPage> {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       print("✅ 게시물 작성 완료");
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } else {
       print("❌ 게시물 작성 실패 ${response.statusCode}");
       print("토큰: $token");
